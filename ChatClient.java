@@ -4,8 +4,48 @@ import java.io.*;
 import java.net.*;
 
 public class ChatClient {
-    public static void main(String[] args) throws IOException {
-        Socket socket = new Socket("localhost", 5000);
-        System.out.println("Connected to server.");
+    private Socket socket = null;
+    private BufferedReader inputConsole = null;
+    private PrintWriter out = null;
+    private BufferedReader in = null;
+
+    public ChatClient(String address, int port) {
+        try {
+            socket = new Socket(address, port);
+            System.out.println("Connected to the chat server");
+
+            inputConsole = new BufferedReader(new InputStreamReader(System.in));
+            out = new PrintWriter(socket.getOutputStream(), true);
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            new Thread(() -> {
+                String msgFromServer;
+                try {
+                    while ((msgFromServer = in.readLine()) != null) {
+                        System.out.println(socket + " : " + msgFromServer);
+                    }
+                } catch (IOException e) {
+                    System.out.println("Connection closed.");
+                }
+            }).start();
+
+            String line;
+            while (!(line = inputConsole.readLine()).equalsIgnoreCase("exit")) {
+                out.println(line);
+            }
+
+            socket.close();
+            inputConsole.close();
+            out.close();
+
+        } catch (UnknownHostException u) {
+            System.out.println("Host unknown: " + u.getMessage());
+        } catch (IOException i) {
+            System.out.println("Unexpected exception: " + i.getMessage());
+        }
+    }
+
+    public static void main(String args[]) {
+        new ChatClient("127.0.0.1", 2000);
     }
 }

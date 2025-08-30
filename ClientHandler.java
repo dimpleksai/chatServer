@@ -22,7 +22,9 @@ public class ClientHandler implements Runnable {
             String inputLine;
             while ((inputLine = in.readLine()) != null) {
                 for (ClientHandler client : clients) {
-                    client.out.println(inputLine);
+                    if (client != this) {
+                        client.out.println(inputLine);
+                    }
                 }
             }
         } catch (IOException e) {
